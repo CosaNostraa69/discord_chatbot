@@ -18,22 +18,29 @@ client.on('interactionCreate', async (interaction) => {
 
     if (commandName === 'wavbot') {
         const question = options.getString('question');
+        console.log('Question received:', question); // Ajoutez ce log pour vérifier la question
 
         try {
             // Envoyer une requête à ChatGPT
-            const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+            const response = await axios.post('https://api.openai.com/v1/completions', {
                 model: "gpt-4",
-                messages: [{ role: "user", content: question }],
+                prompt: question,
+                max_tokens: 150,
+                n: 1,
+                stop: null,
+                temperature: 0.7,
             }, {
                 headers: {
                     'Authorization': `Bearer ${openai_api_key}`,
                 }
             });
 
-            const reply = response.data.choices[0].message.content;
+            console.log('Response received from OpenAI:', response.data); // Ajoutez ce log pour vérifier la réponse
+
+            const reply = response.data.choices[0].text.trim();
             await interaction.reply(reply);
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error:', error.response ? error.response.data : error.message); // Ajoutez ce log pour vérifier l'erreur
             await interaction.reply('Désolé, une erreur est survenue en traitant votre demande.');
         }
     }
