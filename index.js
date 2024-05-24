@@ -11,22 +11,32 @@ client.once('ready', () => {
     console.log('Bot is online!');
 });
 
-client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isCommand()) return;
 
-    // Envoyer une requête à ChatGPT
-    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: "gpt-4",
-        messages: [{ role: "user", content: message.content }],
-    }, {
-        headers: {
-            'Authorization': `Bearer ${openai_api_key}`,
+    const { commandName, options } = interaction;
+
+    if (commandName === 'wavbot') {
+        const question = options.getString('question');
+
+        try {
+            // Envoyer une requête à ChatGPT
+            const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+                model: "gpt-4",
+                messages: [{ role: "user", content: question }],
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${openai_api_key}`,
+                }
+            });
+
+            const reply = response.data.choices[0].message.content;
+            await interaction.reply(reply);
+        } catch (error) {
+            console.error('Error:', error);
+            await interaction.reply('Désolé, une erreur est survenue en traitant votre demande.');
         }
-    });
-
-    const reply = response.data.choices[0].message.content;
-
-    message.reply(reply);
+    }
 });
 
 client.login(token);
